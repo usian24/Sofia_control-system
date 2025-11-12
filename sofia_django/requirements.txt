@@ -1,0 +1,38 @@
+# Core de Django
+Django==5.0.6
+
+# Herramientas del servidor local
+asgiref==3.8.1
+sqlparse==0.5.1
+tzdata==2024.1
+
+# Para servir archivos estáticos correctamente
+whitenoise==6.7.0
+
+# Para manejo de variables de entorno (opcional pero recomendado)
+python-dotenv==1.0.1
+
+# Para uso de formularios y extensiones útiles
+django-crispy-forms==2.2
+crispy-bootstrap5==0.7
+
+# Seguridad y cabeceras HTTP
+django-cors-headers==4.3.1
+
+# Soporte para archivos estáticos y media
+Pillow==10.3.0
+
+# Si manejas gráficos o reportes
+matplotlib==3.9.0
+
+# Librerías de apoyo para desarrollo y depuración
+django-debug-toolbar==4.4.1
+django-extensions==3.2.3
+ipython==8.25.0
+
+# Testing
+coverage==7.5.4
+
+# Actualización automática de dependencias
+pip-tools==7.4.1
+djangorestframework==3.15.2

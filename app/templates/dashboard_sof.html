@@ -1,0 +1,526 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}dashboard_sof - Sofia{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %} 
+{% block content %}
+
+<div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>SOFIA</h1>
+                        <p>Control System</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-view="dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 13a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-view="conversations">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span>Conversaciones</span>
+                </div>
+                <div class="nav-item" data-view="users">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span>Usuarios</span>
+                </div>
+                <div class="nav-item" data-view="analytics">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span>Analytics</span>
+                </div>
+                <div class="nav-item" data-view="settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>Configuración</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="bot-status">
+                    <div class="bot-status-header">
+                        <div class="status-dot"></div>
+                        <span>Estado del Bot</span>
+                    </div>
+                    <p>Sofia está activa</p>
+                </div>
+
+                <div class="user-info">
+                    <p>Usuario activo</p>
+                    <p id="currentUserName">Loading...</p>
+                </div>
+
+                <button class="logout-btn" onclick="handleLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboardView" class="view-content">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p>Resumen general del sistema Sofia</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">+12%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Usuarios Activos</p>
+                            <p id="activeUsersCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">+8%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Conversaciones Activas</p>
+                            <p id="activeConversationsCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">+24%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Mensajes Totales</p>
+                            <p id="totalMessagesCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">-5%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Pendientes</p>
+                            <p id="pendingCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h2 style="margin-bottom: 24px; color: #0A192F;">Conversaciones Recientes</h2>
+                        <div id="recentConversations"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2 style="margin-bottom: 24px; color: #0A192F;">Usuarios Destacados</h2>
+                        <div id="topUsers"></div>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-top: 24px;">
+                    <div class="card">
+                        <h2 style="margin-bottom: 24px; color: #0A192F;">Etiquetas Activas</h2>
+                        <div id="activeTags"></div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 2; background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%); color: white;">
+                        <h2 style="margin-bottom: 24px;">Rendimiento de Sofia</h2>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; backdrop-filter: blur(10px);">
+                                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 4px;">Tiempo de Respuesta</p>
+                                <p style="font-size: 24px; font-weight: 600;">0.8s</p>
+                                <p style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 4px;">Promedio</p>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; backdrop-filter: blur(10px);">
+                                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 4px;">Tasa de Éxito</p>
+                                <p style="font-size: 24px; font-weight: 600;">94.2%</p>
+                                <p style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 4px;">Conversaciones resueltas</p>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; backdrop-filter: blur(10px);">
+                                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 4px;">Mensajes Hoy</p>
+                                <p style="font-size: 24px; font-weight: 600;">247</p>
+                                <p style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 4px;">+18% vs ayer</p>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; backdrop-filter: blur(10px);">
+                                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 4px;">Satisfacción</p>
+                                <p style="font-size: 24px; font-weight: 600;">4.8/5</p>
+                                <p style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 4px;">Calificación promedio</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONVERSATIONS VIEW -->
+            <div id="conversationsView" class="view-content hidden">
+                <div class="page-header">
+                    <h1>Conversaciones</h1>
+                    <p>Gestiona las conversaciones con tus usuarios</p>
+                </div>
+
+                <div class="conversations-layout">
+                    <div class="card conversation-list">
+                        <div class="input-with-icon" style="margin-bottom: 16px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" class="input" id="conversationSearch" placeholder="Buscar conversaciones...">
+                        </div>
+
+                        <div class="conversation-filters">
+                            <button class="filter-btn active" data-filter="all">Todas</button>
+                            <button class="filter-btn" data-filter="active">Activas</button>
+                            <button class="filter-btn" data-filter="pending">Pendientes</button>
+                        </div>
+
+                        <div class="conversation-items" id="conversationList"></div>
+                    </div>
+
+                    <div class="card conversation-detail">
+                        <div class="conversation-detail-header" id="conversationHeader">
+                            <p style="color: #B0B0B0; text-align: center;">Selecciona una conversación para ver los mensajes</p>
+                        </div>
+
+                        <div class="conversation-messages" id="conversationMessages"></div>
+
+                        <div class="conversation-input">
+                            <input type="text" class="input" id="messageInput" placeholder="Escribe un mensaje...">
+                            <button class="btn btn-primary" onclick="sendMessage()">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS VIEW -->
+            <div id="usersView" class="view-content hidden">
+                <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1>Usuarios</h1>
+                        <p>Gestiona tus usuarios y etiquetas</p>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="showAddTagModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px; display: inline-block; margin-right: 8px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Nueva Etiqueta
+                        </button>
+                        <button class="btn btn-primary" onclick="showAddUserModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px; display: inline-block; margin-right: 8px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Agregar Usuario
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 4px;">Total Usuarios</p>
+                        <p style="color: #0A192F; font-size: 24px; font-weight: 600;" id="totalUsersCount">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 4px;">Usuarios Activos</p>
+                        <p style="color: #0A192F; font-size: 24px; font-weight: 600;" id="activeUsersCountUsers">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 4px;">Etiquetas Activas</p>
+                        <p style="color: #0A192F; font-size: 24px; font-weight: 600;" id="totalTagsCount">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 4px;">Promedio Mensajes</p>
+                        <p style="color: #0A192F; font-size: 24px; font-weight: 600;" id="avgMessages">0</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="input-with-icon" style="margin-bottom: 24px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" class="input" id="userSearch" placeholder="Buscar usuarios..." onkeyup="filterUsers()">
+                    </div>
+
+                    <div id="usersList"></div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h2 style="margin-bottom: 24px; color: #0A192F;">Etiquetas del Sistema</h2>
+                    <div class="tag-grid" id="tagsList"></div>
+                </div>
+            </div>
+
+            <!-- ANALYTICS VIEW -->
+            <div id="analyticsView" class="view-content hidden">
+                <div class="page-header">
+                    <h1>Analytics & Conversiones</h1>
+                    <p>Métricas detalladas de rendimiento y conversiones</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">+12.5%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Tasa de Conversión</p>
+                            <p id="conversionRate">0%</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">+24.3%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Ingresos Totales</p>
+                            <p id="totalRevenue">$0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">+18.2%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Ventas Generadas</p>
+                            <p id="totalSales">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                            </div>
+                            <div class="stat-change">+8.7%</div>
+                        </div>
+                        <div class="stat-info">
+                            <p>Ticket Promedio</p>
+                            <p id="avgTicket">$0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h2 style="color: #0A192F; margin-bottom: 8px;">Tendencia de Conversiones</h2>
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 16px;">Conversaciones vs Ventas - Últimos 7 días</p>
+                        <div class="chart-container">
+                            <canvas id="conversionTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 style="color: #0A192F; margin-bottom: 8px;">Estado de Conversaciones</h2>
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 16px;">Distribución actual</p>
+                        <div class="chart-container">
+                            <canvas id="conversationStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top: 24px;">
+                    <div class="card">
+                        <h2 style="color: #0A192F; margin-bottom: 8px;">Conversiones por Segmento</h2>
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 16px;">Tasa de conversión por etiqueta de cliente</p>
+                        <div class="chart-container">
+                            <canvas id="conversionByTagChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 style="color: #0A192F; margin-bottom: 8px;">Rendimiento por Horario</h2>
+                        <p style="color: #B0B0B0; font-size: 14px; margin-bottom: 16px;">Mensajes y conversiones por hora</p>
+                        <div class="chart-container">
+                            <canvas id="performanceByHourChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS VIEW -->
+            <div id="settingsView" class="view-content hidden">
+                <div class="page-header">
+                    <h1>Configuración</h1>
+                    <p>Ajusta las preferencias del sistema</p>
+                </div>
+
+                <div class="card">
+                    <h2 style="margin-bottom: 24px; color: #0A192F;">Configuración General</h2>
+                    <p style="color: #B0B0B0;">Funcionalidades de configuración disponibles próximamente...</p>
+                    <p style="color: #B0B0B0; margin-top: 16px;">Este sistema está listo para conectarse con Django backend para gestionar configuraciones avanzadas.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Nuevo Usuario</h2>
+                <p>Completa la información del nuevo usuario</p>
+            </div>
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label for="userName">Nombre completo</label>
+                    <input 
+                        type="text" 
+                        class="input" 
+                        id="userName" 
+                        placeholder="Ej: Juan Pérez" 
+                        required
+                    >
+                </div>
+            
+                <div class="form-group">
+                    <label for="userEmail">Email</label>
+                    <input 
+                        type="email" 
+                        class="input" 
+                        id="userEmail" 
+                        placeholder="Ej: juan@gmail.com"
+                    >
+                </div>
+            
+                <div class="form-group">
+                    <label for="userPhone">Teléfono / WhatsApp</label>
+                    <input 
+                        type="tel" 
+                        class="input" 
+                        id="userPhone" 
+                        placeholder="Ej: +51 987 654 321" 
+                        required
+                    >
+                </div>
+            
+                <div class="form-group">
+                    <label>Etiquetas</label>
+                    <div 
+                        id="userTagsSelection" 
+                        style="display: flex; flex-wrap: wrap; gap: 8px;"
+                    ></div>
+                </div>
+            
+                <div class="modal-footer">
+                    <button 
+                        type="button" 
+                        class="btn btn-secondary" 
+                        onclick="closeAddUserModal()"
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        type="submit" 
+                        class="btn btn-primary"
+                    >
+                        Agregar Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Tag Modal -->
+    <div id="addTagModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Crear Nueva Etiqueta</h2>
+                <p>Define el nombre y color de la nueva etiqueta</p>
+            </div>
+            <form id="addTagForm">
+                <div class="form-group">
+                    <label for="tagName">Nombre de la etiqueta</label>
+                    <input type="text" class="input" id="tagName" placeholder="cliente-corporativo" required>
+                </div>
+                <div class="form-group">
+                    <label for="tagColor">Color</label>
+                    <select class="input" id="tagColor">
+                        <option value="#10B981">Verde</option>
+                        <option value="#3B82F6">Azul</option>
+                        <option value="#8B5CF6">Púrpura</option>
+                        <option value="#F59E0B">Naranja</option>
+                        <option value="#EF4444">Rojo</option>
+                        <option value="#06B6D4">Cian</option>
+                        <option value="#6B7280">Gris</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddTagModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Etiqueta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="{% static 'js/app.js' %}"></script>
+
+{% endblock %}
