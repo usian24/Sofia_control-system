@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_list_or_404
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
 from django.http import JsonResponse
@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
-
+from django.views.decorators.http import require_http_methods
 
 User = get_user_model()  # para acceder al modelo de usuario configurado
 
@@ -67,7 +67,11 @@ def clientes(request):
     if request.method == 'GET':
         clientes = Cliente.objects.filter(creado_por=user).order_by('-fecha_registro')
         data = [
-            {"id": c.id, "nombre": c.nombre, "numero_whatsapp": c.numero_whatsapp}
+            {   "id": c.id, 
+                "nombre": c.nombre, 
+                "numero_whatsapp": c.numero_whatsapp,
+                "email": getattr(c, 'email', None) 
+             }
             for c in clientes
         ]
         return JsonResponse(data, safe=False)
@@ -80,21 +84,99 @@ def clientes(request):
 
         nombre = data.get("nombre")
         numero = data.get("numero_whatsapp")
+        email = data.get("email")  
 
+        # Validaciones básicas
         if not nombre or not numero:
             return JsonResponse({"error": "Faltan datos"}, status=400)
 
+        # Evitar duplicados por número
+        if Cliente.objects.filter(numero_whatsapp=numero, creado_por=user).exists():
+            return JsonResponse({"error": "Ya existe un cliente con ese número"}, status=400)
+
+        # Crear cliente con correo opcional
         cliente = Cliente.objects.create(
             nombre=nombre,
             numero_whatsapp=numero,
+            email=email if email else None,  
             creado_por=user
         )
 
         return JsonResponse(
-            {"id": cliente.id, "nombre": cliente.nombre, "numero_whatsapp": cliente.numero_whatsapp},
+            {
+                "id": cliente.id,
+                "nombre": cliente.nombre,
+                "numero_whatsapp": cliente.numero_whatsapp,
+                "email": cliente.email, 
+            },
             status=201
         )
 
+# ------------------------------
+# CLIENTE / ACTUALIZAR / ELIMINAR
+# ------------------------------
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def cliente_detalle(request, cliente_id):
+    user = request.user
+
+    # Buscar cliente que pertenezca al usuario
+    try:
+        cliente = Cliente.objects.get(id=cliente_id, creado_por=user)
+    except Cliente.DoesNotExist:
+        return JsonResponse({"error": "Cliente no encontrado"}, status=404)
+
+    # DETALLE DEL CLIENTE
+    if request.method == 'GET':
+        data = {
+            "id": cliente.id,
+            "nombre": cliente.nombre,
+            "numero_whatsapp": cliente.numero_whatsapp,
+            "email": cliente.email,
+            "fecha_registro": cliente.fecha_registro.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        return JsonResponse(data, status=200)
+
+    # ACTUALIZAR CLIENTE
+    elif request.method == 'PUT':
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "JSON inválido"}, status=400)
+
+        nombre = data.get("nombre")
+        numero = data.get("numero_whatsapp")
+        email = data.get("email")
+
+        if not nombre and not numero and not email:
+            return JsonResponse({"error": "No se enviaron datos para actualizar"}, status=400)
+
+        if numero:
+            # Validar duplicado
+            if Cliente.objects.filter(numero_whatsapp=numero, creado_por=user).exclude(id=cliente.id).exists():
+                return JsonResponse({"error": "Ya existe otro cliente con ese número"}, status=400)
+            cliente.numero_whatsapp = numero
+
+        if nombre:
+            cliente.nombre = nombre
+            
+        if email is not None:  
+            cliente.email = email
+
+        cliente.save()
+        return JsonResponse({
+            "message": "Cliente actualizado correctamente",
+            "id": cliente.id,
+            "nombre": cliente.nombre,
+            "numero_whatsapp": cliente.numero_whatsapp,
+            "email": cliente.email
+        })
+
+    # ELIMINAR CLIENTE
+    elif request.method == 'DELETE':
+        cliente.delete()
+        return JsonResponse({"message": "Cliente eliminado correctamente"}, status=200)
 
 # ------------------------------
 # MENSAJES
@@ -177,6 +259,71 @@ def register(request):
         {"message": "Usuario registrado correctamente", "token": token.key},
         status=201
     )
+@api_view(['PUT', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def mensaje_detail(request, mensaje_id):
+    user = request.user
+    try:
+        mensaje = Mensaje.objects.get(id=mensaje_id, cliente__creado_por=user)
+    except Mensaje.DoesNotExist:
+        return JsonResponse({"error": "Mensaje no encontrado"}, status=404)
+
+    if request.method == 'PUT':
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "JSON inválido"}, status=400)
+        texto = payload.get("texto")
+        if texto:
+            mensaje.texto = texto
+            mensaje.save()
+            return JsonResponse({"message": "Mensaje actualizado", "id": mensaje.id})
+        return JsonResponse({"error": "Nada que actualizar"}, status=400)
+
+    elif request.method == 'DELETE':
+        mensaje.delete()
+        return JsonResponse({"message": "Mensaje eliminado"})
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    # Borramos el token actual
+    token = request.auth
+    if token:
+        token.delete()
+    return JsonResponse({"message": "Sesión cerrada"})
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def me(request):
+    user = request.user
+    return JsonResponse({"id": user.id, "email": user.email, "username": user.username, "name": getattr(user, 'first_name', '')})
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def todos_los_mensajes(request):
+    user = request.user
+    mensajes = Mensaje.objects.filter(cliente__creado_por=user).order_by('-fecha')
+    data = [
+        {
+            "id": m.id,
+            "texto": m.texto,
+            "cliente": m.cliente.nombre if m.cliente else None,
+            "fecha": m.fecha.strftime("%Y-%m-%d %H:%M"),
+            "tipo": m.tipo
+        }
+        for m in mensajes
+    ]
+    return JsonResponse(data, safe=False)
+
+
+
+
+
 
 # ------------------------------
 # PÁGINAS HTML

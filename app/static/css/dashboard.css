@@ -1055,6 +1055,14 @@ body {
     transition: var(--transition-base);
     border: 1px solid transparent;
 }
+.user-info-detail {
+  flex: 1;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;  /* 👈 Esto alinea todo el texto a la izquierda */
+  text-align: left;         /* 👈 Esto evita que se centre el texto */
+}
 
 .user-item:hover {
     background: var(--white);
@@ -1436,7 +1444,7 @@ body {
         padding: 20px;
     }
 }
-    
+
 /* ============================================
    MICRO-INTERACTIONS
    ============================================ */
@@ -1459,4 +1467,55 @@ body {
         transform: scale(4);
         opacity: 0;
     }
+}
+
+.user-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #4B5563;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.menu-btn:hover {
+  color: #111827;
+}
+
+.menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 24px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+.menu-dropdown button {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  color: #374151;
+  font-size: 14px;
+}
+
+.menu-dropdown button:hover {
+  background: #F3F4F6;
+}
+
+.hidden {
+  display: none;
 }

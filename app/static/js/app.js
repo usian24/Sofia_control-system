@@ -445,45 +445,74 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
         }
 
         function filterUsers() {
-            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
-            const filteredUsers = appData.users.filter(user => 
-                user.name.toLowerCase().includes(searchTerm) || 
-                user.email.toLowerCase().includes(searchTerm)
-            );
-
-            const usersHTML = filteredUsers.map(user => {
-                const tagsHTML = user.tags.map(tagName => {
-                    const tag = appData.tags.find(t => t.name === tagName);
-                    return `<span class="badge" style="background: ${tag?.color || '#6B7280'};">${tagName}</span>`;
-                }).join('');
-
-                return `
-                    <div class="user-item">
-                        <div class="user-avatar">${user.name.charAt(0)}</div>
-                        <div class="user-info-detail">
-                            <div class="user-name">
-                                ${user.name}
-                                <div class="status-indicator status-${user.status}"></div>
-                            </div>
-                            <div class="user-contact">
-                                <span>✉ ${user.email}</span>
-                                <span>☎ ${user.phone}</span>
-                            </div>
-                            <div class="user-tags">
-                                ${tagsHTML}
-                            </div>
-                        </div>
-                        <div style="text-align: center;">
-                            <p style="color: #0A192F; font-weight: 600;">${user.messagesCount}</p>
-                            <p style="color: #B0B0B0; font-size: 12px;">mensajes</p>
-                        </div>
-                    </div>
-                `;
+          const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+          const filteredUsers = appData.users.filter(user =>
+            user.name.toLowerCase().includes(searchTerm) ||
+            (user.email && user.email.toLowerCase().includes(searchTerm))
+          );
+        
+          const usersHTML = filteredUsers.map(user => {
+            const tagsHTML = user.tags.map(tagName => {
+              const tag = appData.tags.find(t => t.name === tagName);
+              return `<span class="badge" style="background: ${tag?.color || '#6B7280'};">${tagName}</span>`;
             }).join('');
-
-            document.getElementById('usersList').innerHTML = usersHTML;
+        
+            return `
+              <div class="user-item" data-id="${user.id}" style="position: relative;">
+                <div class="user-avatar">${user.name.charAt(0)}</div>
+                <div class="user-info-detail">
+                  <div class="user-name"> usuario: 
+                    ${user.name}
+                    <div class="status-indicator status-${user.status}"></div>
+                  </div>
+                  <div class="user-contact">
+                    <span>✉ ${user.email || '—'}</span>
+                    <span>☎ ${user.phone || '—'}</span>
+                  </div>
+                  <div class="user-tags">
+                    ${tagsHTML}
+                  </div>
+                </div>
+        
+                <!--  Menú de acciones (editar / eliminar) -->
+                <div class="user-actions">
+                  <button class="menu-btn" data-id="${user.id}">⋮</button>
+                  <div class="menu-dropdown hidden" id="menu-${user.id}">
+                    <button class="edit-btn" data-id="${user.id}">✏️ Editar</button>
+                    <button class="delete-btn" data-id="${user.id}">🗑️ Eliminar</button>
+                  </div>
+                </div>
+        
+                <div style="text-align: center;">
+                  <p style="color: #0A192F; font-weight: 600;">${user.messagesCount}</p>
+                  <p style="color: #B0B0B0; font-size: 12px;">mensajes</p>
+                </div>
+              </div>
+            `;
+          }).join('');
+        
+          document.getElementById('usersList').innerHTML = usersHTML;
+        
+          // 🔹 Lógica para mostrar / ocultar el menú contextual
+          document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const id = btn.dataset.id;
+              const menu = document.getElementById(`menu-${id}`);
+              document.querySelectorAll('.menu-dropdown').forEach(m => {
+                if (m !== menu) m.classList.add('hidden');
+              });
+              menu.classList.toggle('hidden');
+            });
+          });
+        
+          // 🔹 Cerrar menús al hacer click fuera
+          document.addEventListener('click', () => {
+            document.querySelectorAll('.menu-dropdown').forEach(m => m.classList.add('hidden'));
+          });
         }
-
+        
+        
         function renderTags() {
             const tagsHTML = appData.tags.map(tag => {
                 const userCount = appData.users.filter(u => u.tags.includes(tag.name)).length;
@@ -735,6 +764,7 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
             // Capturar valores del formulario
             const nombre = document.getElementById('userName').value;
             const numero_whatsapp = document.getElementById('userPhone').value;
+            const email = document.getElementById('userEmail').value;
             
             // Enviar al backend Django
             const token = localStorage.getItem("token");
@@ -746,7 +776,7 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                         "Content-Type": "application/json",
                         "Authorization": `Token ${token}`
                     },
-                    body: JSON.stringify({ nombre, numero_whatsapp })
+                    body: JSON.stringify({ nombre, numero_whatsapp, email })
                 });
             
                 if (res.ok) {
@@ -758,6 +788,7 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                         id: newClient.id,
                         name: newClient.nombre,
                         phone: newClient.numero_whatsapp,
+                        email: newClient.email,
                         tags: selectedTags,
                         lastInteraction: new Date().toISOString(),
                         messagesCount: 0,
@@ -1003,6 +1034,7 @@ async function loadClients() {
             appData.users = clients.map(c => ({
                 id: c.id,
                 name: c.nombre,
+                email: c.email || '—',
                 phone: c.numero_whatsapp,
                 tags: [],
                 lastInteraction: new Date().toISOString(),
@@ -1020,31 +1052,138 @@ async function loadClients() {
     }
 }
 
-// ============================
-// Verificación de sesión en dashboard
-// ============================
-window.addEventListener("DOMContentLoaded", () => {
-    console.log("Verificando sesión...");
+// ===== CONSOLIDATED: CRUD clientes helpers & main listener =====
 
-    // Usamos un pequeño delay para asegurar sincronización del localStorage
-    document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-        const token = localStorage.getItem("token");
-        console.log(" TOKEN EN DASHBOARD:", token);
-
-        if (!token) {
-            alert("Debes iniciar sesión primero");
-            // Redirige al login absoluto (para evitar dominios distintos)
-            window.location.href = "/";
-            return;
-        }
-
-        console.log(" Sesión activa, cargando dashboard...");
-        if (typeof loadClients === "function") {
-            loadClients();
-        }
-    }, 500); // puedes subirlo a 800ms si el navegador es lento
+// Helpers de API (usa Token auth)
+const apiHeaders = (token) => ({
+  "Content-Type": "application/json",
+  "Authorization": `Token ${token}`
 });
-}); 
+
+// Obtener detalle de un cliente
+async function getCliente(clienteId) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`/api/clientes/${clienteId}/`, {
+    method: "GET",
+    headers: apiHeaders(token)
+  });
+  if (!res.ok) throw new Error(`Error al obtener cliente: ${res.status}`);
+  return await res.json();
+}
+
+// Actualizar cliente
+async function actualizarCliente(clienteId, payload) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`/api/clientes/${clienteId}/`, {
+    method: "PUT",
+    headers: apiHeaders(token),
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({error: 'error desconocido'}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
+// Eliminar cliente
+async function eliminarCliente(clienteId) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`/api/clientes/${clienteId}/`, {
+    method: "DELETE",
+    headers: apiHeaders(token)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({error: 'error desconocido'}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
+// Delegación de eventos para botones dentro del contenedor de usuarios (usersList)
+function attachClientActions() {
+  const cont = document.getElementById('usersList') || document.getElementById('clientsList');
+  if (!cont) return;
+  cont.addEventListener('click', async (ev) => {
+    const target = ev.target;
+    // EDITAR
+    if (target.matches('.edit-btn')) {
+      const id = target.dataset.id;
+      try {
+        const cliente = await getCliente(id);
+        const nuevoNombre = prompt('Editar nombre', cliente.nombre);
+        const nuevoNumero = prompt('Editar número', cliente.numero_whatsapp);
+        const nuevoEmail = prompt('Editar correo electrónico:', cliente.email || '');
+        
+        // Si cancela todos los campos, no hace nada
+        if (nuevoNombre === null && nuevoNumero === null && nuevoEmail === null) return; 
+
+        // Construir payload solo con los campos que cambian
+        const payload = {};
+        if (nuevoNombre !== null && nuevoNombre !== cliente.nombre) payload.nombre = nuevoNombre;
+        if (nuevoNumero !== null && nuevoNumero !== cliente.numero_whatsapp) payload.numero_whatsapp = nuevoNumero;
+        if (nuevoEmail !== null && nuevoEmail !== cliente.email) payload.email = nuevoEmail;
+         // Si no hay cambios, no hacer petición
+        if (Object.keys(payload).length === 0) {
+          alert("No hay cambios para guardar.");
+          return;
+        }
+
+        await actualizarCliente(id, payload);
+        await loadClients(); // calls the primary loadClients to refresh ui
+        alert('Cliente actualizado');
+      } catch (err) {
+        console.error(err);
+        alert('Error al actualizar: ' + err.message);
+      }
+    }
+
+    //  ELIMINAR CLIENTE
+    if (target.matches('.delete-btn')) {
+      const id = target.dataset.id;
+      if (!confirm('¿Eliminar cliente? Esta acción es irreversible.')) return;
+
+      try {
+        await eliminarCliente(id);
+        await loadClients();
+        alert(' Cliente eliminado correctamente');
+      } catch (err) {
+        console.error(err);
+        alert(' Error al eliminar: ' + err.message);
+      }
+    }
+  });
+}
+
+// MAIN listener (ensure only one exists)
+window.addEventListener("DOMContentLoaded", async () => {
+  // small delay for storage sync if needed
+  await new Promise(r => setTimeout(r, 200));
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.warn('No token found, redirecting to login');
+    window.location.href = '/';
+    return;
+  }
+
+  try {
+    // If there is an existing loadClients defined earlier, call it.
+    if (typeof window.loadClients === 'function') {
+      await window.loadClients();
+    } else if (typeof loadClients === 'function') {
+      await loadClients();
+    }
+  } catch (e) {
+    console.error('Error during initial loadClients:', e);
+  }
+
+  // attach actions to users list
+  attachClientActions();
+});
+
+
+
+
 
 

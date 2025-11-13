@@ -10,9 +10,14 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path("api/test/", views.test),
     path("api/login/", views.login),
-    path("api/register/", views.register, name="register"),  
+    path("api/register/", views.register, name="register"), 
+    path("api/logout/", views.logout_view),
+    path("api/me/", views.me),
     path("api/clientes/", views.clientes),
+    path("api/clientes/<int:cliente_id>/", views.cliente_detalle),
     path("api/mensajes/", views.mensajes),
+    path("api/mensajes/<int:mensaje_id>/", views.mensaje_detail),
+    path("api/mensajes/todos/", views.todos_los_mensajes),
 ]
 
 
