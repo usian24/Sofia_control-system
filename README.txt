@@ -1,7 +1,7 @@
 Proyecto reorganizado para Django (Option A).
 
 Estructura creada:
-
+frontend: 
 app/
 ├── templates/
 │   ├── base.html
@@ -12,6 +12,7 @@ app/
     │   └── styles.css
     └── js/
         ├── control.js
+        ├── chat.js
         └── app.js
 
 Qué hice:
@@ -21,10 +22,7 @@ Qué hice:
 - Creé templates que extienden base.html y dejé el contenido de <body> en cada uno.
 - Reemplacé enlaces relativos a css/js por plantillas de Django: {% static '...' %}.
 - No eliminé nada del contenido original; todo HTML se colocó dentro de templates.
-- Si tienes scripts con <script src="..."> externos, éstos se mantienen sin cambios.
-
-Siguientes pasos recomendados:
-- Copia la carpeta 'app' dentro de tu proyecto Django.
-- Asegúrate de tener 'django.contrib.staticfiles' y la configuración STATIC_URL y STATICFILES_DIRS apropiadas.
-- Ajusta templates según necesites (incluir bloques extra_head/extra_scripts si necesitas inyectar contenido por template).
-
+- login funcional 
+- creacion de usuarios 
+- crud clientes termiando 
+- conversaciones con los clinetes registrando en la base de datos 

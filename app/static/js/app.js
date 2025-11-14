@@ -208,7 +208,7 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                     renderDashboard();
                     break;
                 case 'conversations':
-                    renderConversations();
+                    loadConversationsList();
                     break;
                 case 'users':
                     renderUsers();
@@ -309,127 +309,7 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
 
             document.getElementById('activeTags').innerHTML = activeTagsHTML;
         }
-
-        // ===== CONVERSATIONS =====
-        function renderConversations() {
-            const filteredConversations = appData.conversations.filter(conv => {
-                if (appData.conversationFilter === 'all') return true;
-                return conv.status === appData.conversationFilter;
-            });
-
-            const conversationsHTML = filteredConversations.map(conv => {
-                const isSelected = appData.selectedConversation?.id === conv.id;
-                return `
-                    <div class="conversation-item ${isSelected ? 'active' : ''}" onclick="selectConversation('${conv.id}')">
-                        <div class="conversation-header">
-                            <div class="conversation-avatar" style="${isSelected ? 'background: rgba(255,255,255,0.2);' : ''}">
-                                ${conv.userName.charAt(0)}
-                            </div>
-                            <div style="flex: 1; min-width: 0;">
-                                <p style="font-weight: 500; margin-bottom: 4px;">${conv.userName}</p>
-                                <div style="display: flex; align-items: center; gap: 4px;">
-                                    <div class="status-indicator status-${conv.status}"></div>
-                                    <span style="font-size: 12px; color: ${isSelected ? 'rgba(255,255,255,0.8)' : '#B0B0B0'};">
-                                        ${conv.status === 'active' ? 'Activa' : conv.status === 'pending' ? 'Pendiente' : 'Resuelta'}
-                                    </span>
-                                </div>
-                            </div>
-                            ${conv.unreadCount > 0 ? `<span class="badge" style="background: #3B82F6;">${conv.unreadCount}</span>` : ''}
-                        </div>
-                        <p style="font-size: 14px; color: ${isSelected ? 'rgba(255,255,255,0.8)' : '#B0B0B0'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${conv.lastMessage}
-                        </p>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('conversationList').innerHTML = conversationsHTML;
-
-            if (appData.selectedConversation) {
-                renderConversationDetail();
-            }
-        }
-
-        function selectConversation(convId) {
-            appData.selectedConversation = appData.conversations.find(c => c.id === convId);
-            renderConversations();
-        }
-
-        function renderConversationDetail() {
-            const conv = appData.selectedConversation;
-            if (!conv) return;
-
-            const tagsHTML = conv.userTags.map(tag => {
-                const tagObj = appData.tags.find(t => t.name === tag);
-                return `<span class="badge" style="background: ${tagObj?.color || '#6B7280'};">${tag}</span>`;
-            }).join('');
-
-            const headerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="conversation-avatar" style="width: 48px; height: 48px;">
-                            ${conv.userName.charAt(0)}
-                        </div>
-                        <div>
-                            <p style="color: #0A192F; font-weight: 600; margin-bottom: 4px;">${conv.userName}</p>
-                            <div style="display: flex; gap: 8px;">
-                                ${tagsHTML}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('conversationHeader').innerHTML = headerHTML;
-
-            const messagesHTML = conv.messages.map(msg => {
-                const isBot = msg.sender === 'bot';
-                const time = new Date(msg.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                
-                return `
-                    <div class="message ${msg.sender}">
-                        <div class="message-content">
-                            <p>${msg.content}</p>
-                            <p class="message-time">${time}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('conversationMessages').innerHTML = messagesHTML;
-            
-            // Scroll to bottom
-            const messagesContainer = document.getElementById('conversationMessages');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const content = input.value.trim();
-            
-            if (!content || !appData.selectedConversation) return;
-
-            const newMessage = {
-                id: `m-${Date.now()}`,
-                sender: 'bot',
-                content: content,
-                timestamp: new Date().toISOString()
-            };
-
-            // Find conversation and add message
-            const convIndex = appData.conversations.findIndex(c => c.id === appData.selectedConversation.id);
-            if (convIndex !== -1) {
-                appData.conversations[convIndex].messages.push(newMessage);
-                appData.conversations[convIndex].lastMessage = content;
-                appData.conversations[convIndex].lastMessageTime = newMessage.timestamp;
-                appData.selectedConversation = appData.conversations[convIndex];
-            }
-
-            input.value = '';
-            renderConversationDetail();
-        }
-
-        // ===== USERS =====
+         // ===== USERS =====
         function renderUsers() {
             document.getElementById('totalUsersCount').textContent = appData.users.length;
             document.getElementById('activeUsersCountUsers').textContent = appData.users.filter(u => u.status === 'active').length;
@@ -795,7 +675,16 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                         status: 'active',
                         createdAt: new Date().toISOString()
                     });
-                
+
+                    if (typeof loadConversationsList === "function") {
+                        loadConversationsList();
+                          // ← refresca las conversaciones instantáneamente
+                    }
+                    setTimeout(() => {
+                        const el = document.querySelector(`.conversation-item[data-id="${newClient.id}"]`);
+                        if (el) el.classList.add("highlight");
+                    }, 500);
+
                     closeAddUserModal();
                     renderUsers();
                     alert("Cliente registrado con éxito en el sistema.");
@@ -838,7 +727,7 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 appData.conversationFilter = this.dataset.filter;
-                renderConversations();
+                loadConversationsList(); 
             });
         });
 
@@ -1052,6 +941,39 @@ async function loadClients() {
     }
 }
 
+/* =====================================================
+   CARGAR ETIQUETAS DESDE BACKEND
+===================================================== */
+async function loadTags() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const res = await fetch("/api/tags/", {
+            headers: { "Authorization": `Token ${token}` }
+        });
+
+        if (!res.ok) {
+            console.error("❌ Error al cargar etiquetas:", await res.text());
+            return;
+        }
+
+        const tags = await res.json();
+        console.log("✔ Etiquetas cargadas:", tags);
+
+        // Guarda las etiquetas globalmente en appData
+        if (!window.appData) window.appData = {};
+        window.appData.tags = tags;
+
+        if (typeof renderTags === "function") {
+            renderTags();
+        }
+
+    } catch (error) {
+        console.error("❌ Error en loadTags():", error);
+    }
+}
+
 // ===== CONSOLIDATED: CRUD clientes helpers & main listener =====
 
 // Helpers de API (usa Token auth)
@@ -1167,6 +1089,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  //cargar etiquetas antes de cargar clientes 
+  await loadTags();
+
   try {
     // If there is an existing loadClients defined earlier, call it.
     if (typeof window.loadClients === 'function') {
@@ -1181,7 +1106,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   // attach actions to users list
   attachClientActions();
 });
-
 
 
 

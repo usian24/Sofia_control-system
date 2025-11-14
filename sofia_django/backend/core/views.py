@@ -4,7 +4,7 @@ from rest_framework.authtoken.models import Token
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Cliente, Mensaje
+from .models import Cliente, Mensaje, Tag
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -64,53 +64,80 @@ def login(request):
 def clientes(request):
     user = request.user
 
+    # ============ GET ============
     if request.method == 'GET':
         clientes = Cliente.objects.filter(creado_por=user).order_by('-fecha_registro')
-        data = [
-            {   "id": c.id, 
-                "nombre": c.nombre, 
+
+        data = []
+        for c in clientes:
+
+            # Último mensaje
+            ultimo = (
+                Mensaje.objects.filter(cliente=c)
+                .order_by("-fecha")
+                .first()
+            )
+            ultimo_mensaje = ultimo.texto if ultimo else ""
+
+            # No leídos
+            unread = Mensaje.objects.filter(
+                cliente=c,
+                tipo="recibido",
+                leido=False
+            ).count()
+
+            # Tags (si usas ManyToMany)
+            tags = []
+            if hasattr(c, "tags"):
+                tags = [{"name": t.nombre, "color": t.color} for t in c.tags.all()]
+
+            # Estado del chat
+            status = "active" if unread > 0 else "pending"
+
+            data.append({
+                "id": c.id,
+                "nombre": c.nombre,
                 "numero_whatsapp": c.numero_whatsapp,
-                "email": getattr(c, 'email', None) 
-             }
-            for c in clientes
-        ]
+                "email": c.email,
+                "tags": tags,
+                "status": status,
+                "ultimo_mensaje": ultimo_mensaje,
+                "unread": unread,
+            })
+
         return JsonResponse(data, safe=False)
 
+    # ============ POST ============
     elif request.method == 'POST':
         try:
             data = json.loads(request.body.decode("utf-8"))
-        except json.JSONDecodeError:
+        except:
             return JsonResponse({"error": "JSON inválido"}, status=400)
 
         nombre = data.get("nombre")
         numero = data.get("numero_whatsapp")
-        email = data.get("email")  
+        email = data.get("email")
 
-        # Validaciones básicas
         if not nombre or not numero:
             return JsonResponse({"error": "Faltan datos"}, status=400)
 
-        # Evitar duplicados por número
         if Cliente.objects.filter(numero_whatsapp=numero, creado_por=user).exists():
             return JsonResponse({"error": "Ya existe un cliente con ese número"}, status=400)
 
-        # Crear cliente con correo opcional
         cliente = Cliente.objects.create(
             nombre=nombre,
             numero_whatsapp=numero,
-            email=email if email else None,  
+            email=email,
             creado_por=user
         )
 
-        return JsonResponse(
-            {
-                "id": cliente.id,
-                "nombre": cliente.nombre,
-                "numero_whatsapp": cliente.numero_whatsapp,
-                "email": cliente.email, 
-            },
-            status=201
-        )
+        return JsonResponse({
+            "id": cliente.id,
+            "nombre": cliente.nombre,
+            "numero_whatsapp": cliente.numero_whatsapp,
+            "email": cliente.email
+        }, status=201)
+
 
 # ------------------------------
 # CLIENTE / ACTUALIZAR / ELIMINAR
@@ -187,22 +214,32 @@ def cliente_detalle(request, cliente_id):
 def mensajes(request):
     user = request.user
 
+    # ========= GET =========
     if request.method == 'GET':
         cliente_id = request.GET.get("cliente_id")
         if not cliente_id:
             return JsonResponse({"error": "Falta cliente_id"}, status=400)
-        
-        mensajes = Mensaje.objects.filter(cliente__id=cliente_id, cliente__creado_por=user).order_by('fecha')
-        data = [
-            {"id": m.id, "texto": m.texto, "tipo": m.tipo, "fecha": m.fecha.strftime("%Y-%m-%d %H:%M")}
-            for m in mensajes
-        ]
+
+        mensajes = Mensaje.objects.filter(
+            cliente__id=cliente_id,
+            cliente__creado_por=user
+        ).order_by("fecha")
+
+        data = [{
+            "id": m.id,
+            "texto": m.texto,
+            "tipo": m.tipo,
+            "fecha": m.fecha.strftime("%Y-%m-%d %H:%M"),
+            "leido": m.leido,
+        } for m in mensajes]
+
         return JsonResponse(data, safe=False)
 
+    # ========= POST =========
     elif request.method == 'POST':
         try:
             data = json.loads(request.body.decode("utf-8"))
-        except json.JSONDecodeError:
+        except:
             return JsonResponse({"error": "JSON inválido"}, status=400)
 
         cliente_id = data.get("cliente_id")
@@ -216,11 +253,61 @@ def mensajes(request):
         except Cliente.DoesNotExist:
             return JsonResponse({"error": "Cliente no encontrado"}, status=404)
 
-        mensaje = Mensaje.objects.create(cliente=cliente, texto=texto, tipo="enviado")
-        return JsonResponse(
-            {"id": mensaje.id, "texto": mensaje.texto, "tipo": mensaje.tipo, "fecha": mensaje.fecha.strftime("%Y-%m-%d %H:%M")},
-            status=201
+        m = Mensaje.objects.create(
+            cliente=cliente,
+            texto=texto,
+            tipo="enviado",
+            leido=True
         )
+
+        return JsonResponse({
+            "id": m.id,
+            "texto": m.texto,
+            "tipo": m.tipo,
+            "fecha": m.fecha.strftime("%Y-%m-%d %H:%M"),
+            "leido": True
+        }, status=201)
+        
+# ------------------------------
+# MARCAR MENSAJES COMO LEÍDOS
+# ------------------------------
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def marcar_mensajes_leidos(request):
+    """
+    Body esperado:
+    {
+        "cliente_id": 17
+    }
+    Marca todos los mensajes 'recibido' de ese cliente como leídos.
+    """
+    user = request.user
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except:
+        return JsonResponse({"error": "JSON inválido"}, status=400)
+
+    cliente_id = data.get("cliente_id")
+    if not cliente_id:
+        return JsonResponse({"error": "Falta cliente_id"}, status=400)
+
+    # Validar que el cliente pertenece al usuario
+    try:
+        cliente = Cliente.objects.get(id=cliente_id, creado_por=user)
+    except Cliente.DoesNotExist:
+        return JsonResponse({"error": "Cliente no encontrado"}, status=404)
+
+    # Marcar mensajes como leídos
+    Mensaje.objects.filter(
+        cliente=cliente,
+        tipo="recibido",
+        leido=False
+    ).update(leido=True)
+
+    return JsonResponse({"message": "Mensajes marcados como leídos"})
+
         
 # ------------------------------
 # REGISTRO DE USUARIOS
@@ -320,9 +407,63 @@ def todos_los_mensajes(request):
     ]
     return JsonResponse(data, safe=False)
 
+# crear etiquetas: 
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def tags(request):
+    user = request.user
+
+    # GET → listar etiquetas del usuario
+    if request.method == "GET":
+        tags = Tag.objects.filter(creado_por=user)
+        data = [{"id": t.id, "nombre": t.nombre, "color": t.color} for t in tags]
+        return JsonResponse(data, safe=False)
+
+    # POST → crear etiqueta
+    if request.method == "POST":
+        data = json.loads(request.body)
+        nombre = data.get("nombre")
+        color = data.get("color")
+
+        if not nombre or not color:
+            return JsonResponse({"error": "Faltan datos"}, status=400)
+
+        tag = Tag.objects.create(nombre=nombre, color=color, creado_por=user)
+
+        return JsonResponse({
+            "id": tag.id,
+            "nombre": tag.nombre,
+            "color": tag.color
+        }, status=201)
+        
+        
+#  ------------------------------   
+# asignar_etiquetas a los clientes 
+
+    
+@api_view(["POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def asignar_etiquetas(request, cliente_id):
+    user = request.user
+
+    try:
+        cliente = Cliente.objects.get(id=cliente_id, creado_por=user)
+    except Cliente.DoesNotExist:
+        return JsonResponse({"error": "Cliente no encontrado"}, status=404)
+
+    data = json.loads(request.body)
+    tag_ids = data.get("tags", [])
+
+    cliente.tags.set(tag_ids)
+    cliente.save()
+
+    return JsonResponse({"message": "Etiquetas asignadas correctamente"})
 
 
 
+   
 
 
 # ------------------------------

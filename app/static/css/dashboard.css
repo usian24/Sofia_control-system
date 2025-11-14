@@ -1519,3 +1519,13 @@ body {
 .hidden {
   display: none;
 }
+
+.highlight {
+    animation: blink 0.8s ease-in-out 2;
+}
+
+@keyframes blink {
+    0% { background: #dbeafe; }
+    100% { background: transparent; }
+}
+
