@@ -34,131 +34,11 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
     
             // Initialize users
             appData.users = [
-                {
-                    id: '1',
-                    name: 'Carlos Mendoza',
-                    email: 'carlos.mendoza@email.com',
-                    phone: '+52 555 1234',
-                    tags: ['cliente-destacado', 'premium'],
-                    lastInteraction: '2025-11-10T10:30:00',
-                    messagesCount: 127,
-                    status: 'active',
-                    createdAt: '2025-09-15T08:00:00'
-                },
-                {
-                    id: '2',
-                    name: 'María García',
-                    email: 'maria.garcia@email.com',
-                    phone: '+52 555 5678',
-                    tags: ['cliente-potencial'],
-                    lastInteraction: '2025-11-09T16:45:00',
-                    messagesCount: 34,
-                    status: 'active',
-                    createdAt: '2025-10-20T14:30:00'
-                },
-                {
-                    id: '3',
-                    name: 'Juan Pérez',
-                    email: 'juan.perez@email.com',
-                    phone: '+52 555 9012',
-                    tags: ['nuevo'],
-                    lastInteraction: '2025-11-08T09:15:00',
-                    messagesCount: 5,
-                    status: 'inactive',
-                    createdAt: '2025-11-05T10:00:00'
-                },
-                {
-                    id: '4',
-                    name: 'Ana Rodríguez',
-                    email: 'ana.rodriguez@email.com',
-                    phone: '+52 555 3456',
-                    tags: ['cliente-destacado', 'vip'],
-                    lastInteraction: '2025-11-10T11:20:00',
-                    messagesCount: 203,
-                    status: 'active',
-                    createdAt: '2025-08-10T12:00:00'
-                },
-                {
-                    id: '5',
-                    name: 'Luis Martínez',
-                    email: 'luis.martinez@email.com',
-                    phone: '+52 555 7890',
-                    tags: ['cliente-potencial', 'interesado'],
-                    lastInteraction: '2025-11-09T14:30:00',
-                    messagesCount: 18,
-                    status: 'active',
-                    createdAt: '2025-10-28T09:00:00'
-                }
-            ];
+                    ];
 
             // Initialize conversations
             appData.conversations = [
-                {
-                    id: 'conv-1',
-                    userId: '1',
-                    userName: 'Carlos Mendoza',
-                    userTags: ['cliente-destacado', 'premium'],
-                    status: 'active',
-                    lastMessage: '¿Puedes ayudarme con mi pedido?',
-                    lastMessageTime: '2025-11-10T10:30:00',
-                    unreadCount: 2,
-                    convertedToSale: true,
-                    saleAmount: 2500,
-                    messages: [
-                        { id: 'm1', sender: 'user', content: 'Hola Sofia', timestamp: '2025-11-10T10:25:00' },
-                        { id: 'm2', sender: 'bot', content: 'Hola Carlos, ¿en qué puedo ayudarte hoy?', timestamp: '2025-11-10T10:25:30' },
-                        { id: 'm3', sender: 'user', content: '¿Puedes ayudarme con mi pedido?', timestamp: '2025-11-10T10:30:00' }
-                    ]
-                },
-                {
-                    id: 'conv-2',
-                    userId: '4',
-                    userName: 'Ana Rodríguez',
-                    userTags: ['cliente-destacado', 'vip'],
-                    status: 'active',
-                    lastMessage: 'Gracias por tu ayuda!',
-                    lastMessageTime: '2025-11-10T11:20:00',
-                    unreadCount: 0,
-                    convertedToSale: true,
-                    saleAmount: 4800,
-                    messages: [
-                        { id: 'm4', sender: 'user', content: 'Necesito información sobre el servicio premium', timestamp: '2025-11-10T11:15:00' },
-                        { id: 'm5', sender: 'bot', content: 'Por supuesto Ana, el servicio premium incluye...', timestamp: '2025-11-10T11:15:30' },
-                        { id: 'm6', sender: 'user', content: 'Gracias por tu ayuda!', timestamp: '2025-11-10T11:20:00' }
-                    ]
-                },
-                {
-                    id: 'conv-3',
-                    userId: '2',
-                    userName: 'María García',
-                    userTags: ['cliente-potencial'],
-                    status: 'pending',
-                    lastMessage: '¿Cuáles son los precios?',
-                    lastMessageTime: '2025-11-09T16:45:00',
-                    unreadCount: 1,
-                    convertedToSale: false,
-                    messages: [
-                        { id: 'm7', sender: 'user', content: '¿Cuáles son los precios?', timestamp: '2025-11-09T16:45:00' }
-                    ]
-                },
-                {
-                    id: 'conv-4',
-                    userId: '5',
-                    userName: 'Luis Martínez',
-                    userTags: ['cliente-potencial', 'interesado'],
-                    status: 'resolved',
-                    lastMessage: 'Perfecto, muchas gracias',
-                    lastMessageTime: '2025-11-09T14:30:00',
-                    unreadCount: 0,
-                    convertedToSale: true,
-                    saleAmount: 1200,
-                    messages: [
-                        { id: 'm8', sender: 'user', content: 'Me interesa conocer más sobre sus servicios', timestamp: '2025-11-09T14:20:00' },
-                        { id: 'm9', sender: 'bot', content: 'Claro Luis, te puedo mostrar...', timestamp: '2025-11-09T14:20:30' },
-                        { id: 'm10', sender: 'user', content: 'Perfecto, muchas gracias', timestamp: '2025-11-09T14:30:00' }
-                    ]
-                }
-            ];
+                    ];
 
             renderCurrentView();
         }
@@ -632,7 +512,12 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                     const hexColor = tag.color.toLowerCase();
                     return bgColor !== 'rgb(229, 231, 235)' && bgColor !== '';
                 })
-                .map(badge => badge.dataset.tag);
+                .map(badge => {
+                    const tagName = badge.dataset.tag;
+                    const tagObj = appData.tags.find(t => t.name === tagName);
+                    return tagObj ? tagObj.id : null;
+                })
+                .filter(id => id !== null); 
             
             // Capturar valores del formulario
             const nombre = document.getElementById('userName').value;
@@ -649,7 +534,12 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                         "Content-Type": "application/json",
                         "Authorization": `Token ${token}`
                     },
-                    body: JSON.stringify({ nombre, numero_whatsapp, email })
+                    body: JSON.stringify({
+                        nombre,
+                        numero_whatsapp,
+                        email,
+                        tags: selectedTags
+                    })
                 });
             
                 if (res.ok) {
@@ -662,7 +552,13 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
                         name: newClient.nombre,
                         phone: newClient.numero_whatsapp,
                         email: newClient.email,
-                        tags: selectedTags,
+
+                        //Convertir ids → nombres
+                        tags: selectedTags.map(id => {
+                            const tagObj = appData.tags.find(t => t.id === id);
+                            return tagObj ? tagObj.name : "";
+                        }).filter(t => t !== ""),
+                    
                         lastInteraction: new Date().toISOString(),
                         messagesCount: 0,
                         status: 'active',
@@ -950,7 +846,11 @@ async function loadClients() {
                 name: c.nombre,
                 email: c.email || '—',
                 phone: c.numero_whatsapp,
-                tags: [],
+                tags: Array.isArray(c.tags)
+                    ? c.tags.map(t => t.nombre || t.name)
+                    : [],
+
+
                 lastInteraction: new Date().toISOString(),
                 messagesCount: 0,
                 status: 'active',
@@ -985,7 +885,6 @@ async function loadTags() {
 
         const tags = await res.json();
 
-        // 🔥 ESTA ES LA VERSIÓN CORRECTA
         appData.tags = tags.map(t => ({
             id: t.id,
             name: t.nombre,

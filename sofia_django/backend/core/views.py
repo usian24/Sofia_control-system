@@ -117,6 +117,7 @@ def clientes(request):
         nombre = data.get("nombre")
         numero = data.get("numero_whatsapp")
         email = data.get("email")
+        tag_ids = data.get("tags", [])  # <-- recibir lista de ids de etiquetas
 
         if not nombre or not numero:
             return JsonResponse({"error": "Faltan datos"}, status=400)
@@ -131,12 +132,25 @@ def clientes(request):
             creado_por=user
         )
 
+        # Si enviaron etiquetas, validar que pertenezcan al usuario y asignarlas
+        if tag_ids:
+            tags_qs = Tag.objects.filter(id__in=tag_ids, creado_por=user)
+            cliente.tags.set(tags_qs)
+
+        # Construir respuesta incluyendo las etiquetas guardadas
+        response_tags = [
+            {"id": t.id, "nombre": t.nombre, "color": t.color}
+            for t in cliente.tags.all()
+        ]
+
         return JsonResponse({
             "id": cliente.id,
             "nombre": cliente.nombre,
             "numero_whatsapp": cliente.numero_whatsapp,
-            "email": cliente.email
+            "email": cliente.email,
+            "tags": response_tags
         }, status=201)
+
 
 
 # ------------------------------
@@ -440,8 +454,6 @@ def tags(request):
         
 #  ------------------------------   
 # asignar_etiquetas a los clientes 
-
-    
 @api_view(["POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
