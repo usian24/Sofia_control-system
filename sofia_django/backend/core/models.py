@@ -4,7 +4,11 @@ from django.contrib.auth.models import User
 class Tag(models.Model):
     nombre = models.CharField(max_length=50)
     color = models.CharField(max_length=7)  
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE)
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="tags"
+    )
 
     def __str__(self):
         return self.nombre
@@ -12,13 +16,11 @@ class Tag(models.Model):
 
 class Cliente(models.Model):
     nombre = models.CharField(max_length=100)
-    numero_whatsapp = models.CharField(max_length=20)
+    numero_whatsapp = models.CharField(max_length=50)
     email = models.EmailField(null=True, blank=True)
     creado_por = models.ForeignKey(User, on_delete=models.CASCADE, related_name="clientes")
     fecha_registro = models.DateTimeField(auto_now_add=True)
-
-    #  RELACIÓN MUCHOS A MUCHOS
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, related_name='clientes')  # <<-- relación M2M
 
     def __str__(self):
         return f"{self.nombre} ({self.numero_whatsapp})"
@@ -38,3 +40,5 @@ class Mensaje(models.Model):
 
     def __str__(self):
         return f"{self.tipo} - {self.cliente.nombre}"
+ 
+    

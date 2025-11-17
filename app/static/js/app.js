@@ -28,16 +28,9 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
             // Si hay token, podrías cargar datos del usuario más adelante con el backend
             appData.currentUser = { name: "Usuario activo" };
             document.getElementById('currentUserName').textContent = appData.currentUser.name;
+
+
         
-            // Initialize tags
-            appData.tags = [
-                { id: '1', name: 'cliente-destacado', color: '#10B981' },
-                { id: '2', name: 'cliente-potencial', color: '#3B82F6' },
-                { id: '3', name: 'premium', color: '#8B5CF6' },
-                { id: '4', name: 'vip', color: '#F59E0B' },
-                { id: '5', name: 'nuevo', color: '#6B7280' },
-                { id: '6', name: 'interesado', color: '#06B6D4' }
-            ];
     
             // Initialize users
             appData.users = [
@@ -698,21 +691,55 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
             }
         });
 
-
-        document.getElementById('addTagForm').addEventListener('submit', function(e) {
+        // agrega al llamado  post /api/tags/
+        //creacion de etiqeutas: 
+        document.getElementById("addTagForm").addEventListener("submit", async function (e) {
             e.preventDefault();
-            
-            const tagName = document.getElementById('tagName').value.toLowerCase().replace(/\s+/g, '-');
-            const newTag = {
-                id: `tag-${Date.now()}`,
-                name: tagName,
-                color: document.getElementById('tagColor').value
-            };
 
-            appData.tags.push(newTag);
-            closeAddTagModal();
-            renderUsers();
+            const nombre = document.getElementById("tagName").value.trim();
+            const color = document.getElementById("tagColor").value.trim();
+            const token = localStorage.getItem("token");
+
+            if (!nombre || !color) {
+                alert("Completa todos los campos");
+                return;
+            }
+        
+            try {
+                const res = await fetch("/api/tags/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Token ${token}`
+                    },
+                    body: JSON.stringify({ nombre, color })
+                });
+            
+                if (!res.ok) {
+                    const err = await res.json();
+                    console.error("❌ Error al crear etiqueta:", err);
+                    alert("Error al crear etiqueta");
+                    return;
+                }
+            
+                const nuevaTag = await res.json();
+                console.log("✔ Etiqueta creada en backend:", nuevaTag);
+            
+                // 🔥 Recargar etiquetas desde backend
+                await loadTags();
+            
+                closeAddTagModal();
+                renderUsers();
+                renderTags();
+            
+                alert("Etiqueta creada con éxito");
+            
+            } catch (error) {
+                console.error("❌ Error de conexión:", error);
+                alert("No se pudo conectar al servidor");
+            }
         });
+
 
         // Message input enter key
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
@@ -742,9 +769,7 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
     localStorage.removeItem('token'); //  usar token
     window.location.href = '/'; // volver al login
 }
-
-        // Initialize app
-        initializeData();
+ 
 
 // Estado de la aplicación
         let isRegisterMode = false;
@@ -959,20 +984,23 @@ async function loadTags() {
         }
 
         const tags = await res.json();
-        console.log("✔ Etiquetas cargadas:", tags);
 
-        // Guarda las etiquetas globalmente en appData
-        if (!window.appData) window.appData = {};
-        window.appData.tags = tags;
+        // 🔥 ESTA ES LA VERSIÓN CORRECTA
+        appData.tags = tags.map(t => ({
+            id: t.id,
+            name: t.nombre,
+            color: t.color
+        }));
 
-        if (typeof renderTags === "function") {
-            renderTags();
-        }
+        console.log("✔ Etiquetas procesadas:", appData.tags);
+
+        if (typeof renderTags === "function") renderTags();
 
     } catch (error) {
         console.error("❌ Error en loadTags():", error);
     }
 }
+
 
 // ===== CONSOLIDATED: CRUD clientes helpers & main listener =====
 
@@ -1079,7 +1107,7 @@ function attachClientActions() {
 
 // MAIN listener (ensure only one exists)
 window.addEventListener("DOMContentLoaded", async () => {
-  // small delay for storage sync if needed
+  // Pequeña espera para sincronizar storage
   await new Promise(r => setTimeout(r, 200));
 
   const token = localStorage.getItem('token');
@@ -1089,11 +1117,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  //cargar etiquetas antes de cargar clientes 
+  // Inicializa datos (pero NO borres tags dentro de initializeData)
+  initializeData();
+
+  // Cargar etiquetas primero (para que renderUsers / modales tengan tags)
   await loadTags();
 
+  // Luego cargar clientes
   try {
-    // If there is an existing loadClients defined earlier, call it.
     if (typeof window.loadClients === 'function') {
       await window.loadClients();
     } else if (typeof loadClients === 'function') {
@@ -1103,9 +1134,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.error('Error during initial loadClients:', e);
   }
 
-  // attach actions to users list
+  // Con todo cargado, atachamos los eventos y renderizamos vistas
   attachClientActions();
 });
+
 
 
 
