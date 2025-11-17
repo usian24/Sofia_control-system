@@ -290,15 +290,33 @@ console.log("TOKEN EN DASHBOARD:", localStorage.getItem("token"));
             document.getElementById('tagsList').innerHTML = tagsHTML;
         }
 
-        function deleteTag(tagId) {
-            const tag = appData.tags.find(t => t.id === tagId);
-            if (tag && confirm(`¿Eliminar etiqueta "${tag.name}"?`)) {
-                appData.tags = appData.tags.filter(t => t.id !== tagId);
-                appData.users = appData.users.map(u => ({
-                    ...u,
-                    tags: u.tags.filter(t => t !== tag.name)
-                }));
+        async function deleteTag(tagId) {
+            const token = localStorage.getItem("token");
+            if (!confirm("¿Eliminar etiqueta?")) return;
+                
+            try {
+                const res = await fetch(`/api/tags/${tagId}/`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Token ${token}`
+                    }
+                });
+            
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert("Error al eliminar: " + err.error);
+                    return;
+                }
+            
+                // Recargar etiquetas después de borrar
+                await loadTags();
+                renderTags();
                 renderUsers();
+            
+                alert("Etiqueta eliminada");
+            } catch (error) {
+                console.error("Error al eliminar etiqueta:", error);
+                alert("Error de conexión");
             }
         }
 

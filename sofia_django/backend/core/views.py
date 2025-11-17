@@ -470,8 +470,24 @@ def asignar_etiquetas(request, cliente_id):
 
     cliente.tags.set(tag_ids)
     cliente.save()
-
     return JsonResponse({"message": "Etiquetas asignadas correctamente"})
+
+@api_view(["DELETE"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def eliminar_tag(request, tag_id):
+    user = request.user
+
+    try:
+        tag = Tag.objects.get(id=tag_id, creado_por=user)
+    except Tag.DoesNotExist:
+        return JsonResponse({"error": "Etiqueta no encontrada"}, status=404)
+
+    # Eliminar relaciones M2M primero (opcional, Django lo hace solo)
+    tag.clientes.clear()
+
+    tag.delete()
+    return JsonResponse({"message": "Etiqueta eliminada"})
 
 
 

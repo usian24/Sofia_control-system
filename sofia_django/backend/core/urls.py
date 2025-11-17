@@ -20,6 +20,7 @@ urlpatterns = [
     path("api/mensajes/todos/", views.todos_los_mensajes),
     path('api/mensajes/marcar-leidos/', views.marcar_mensajes_leidos, name='marcar_leidos'),
     path("api/tags/", views.tags),
+    path("api/tags/<int:tag_id>/", views.eliminar_tag),
     path("api/clientes/<int:cliente_id>/etiquetas/", views.asignar_etiquetas),
 
 ]
